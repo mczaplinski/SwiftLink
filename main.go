@@ -61,7 +61,7 @@ func shortenHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get the ShortenRequest parameter from the json body
+	// Get the long URL from the request body
 	var req ShortenRequest
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&req)
@@ -71,15 +71,16 @@ func shortenHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Generate a short URL for the long URL
 	shortURL := generateShortURL(req.URL)
 
+	// Mutex for map write safety
 	mutex.Lock()
 	shortURLs[shortURL] = req.URL
 	mutex.Unlock()
-	log.Printf("Updated Short URL: %s --> Long URL: %s\n", shortURL, req.URL)
+	log.Printf("New/Updated Short URL: %s --> Long URL: %s\n", shortURL, req.URL)
 
 	// Return the short URL in the response
-
 	resp := ShortenResponse{ShortURL: prefix + shortURL}
 	err = json.NewEncoder(w).Encode(resp)
 	if err != nil {
